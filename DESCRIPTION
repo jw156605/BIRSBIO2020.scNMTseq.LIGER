@@ -1,23 +1,22 @@
-Package: BuildABiocWorkshop2020
-Title: Bioconductor Workshop Template and Github Actions
+Package: BIRSBIO2020.scNMTseq.LIGER
+Title: BIRSBIO2020 workshop, scNMTseq data, LIGER algorithm
 Version: 0.1.1
 Authors@R: 
-    person(given = "Sean",
-           family = "Davis",
+    person(given = "Josh",
+           family = "Welch",
            role = c("aut", "cre"),
-           email = "seandavi@gmail.com",
+           email = "welchjd@umich.edu",
            comment = c(ORCID = "your-orc-id-here"))
-Description: This package serves as a template for using github actions to 
-    prepare a Bioconductor Workshop package for use. In particular,
-    a pkgdown website and docker image are generated based on workflow 
-    settings. 
+Description: Analysis of scNMT-seq data using LIGER from BIRSBIO2020
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.0
 Depends: 
-    Biobase
+    Biobase,
+    reshape2,
+    liger
 Suggests: 
     knitr,
     rmarkdown,
