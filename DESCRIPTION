@@ -16,12 +16,12 @@ RoxygenNote: 7.1.0
 Depends: 
     Biobase,
     reshape2,
-    liger
+    MacoskoLab/liger
 Suggests: 
     knitr,
     rmarkdown,
     pkgdown
-URL: https://seandavi.github.io/BuildABiocWorkshop2020/
-BugReports: https://github.com/seandavi/BuildABiocWorkshop2020/issues/new/choose
+URL: https://jw156605.github.io/BIRSBIO2020.scNMTseq.LIGER/
+BugReports: https://github.com/seandavi/BIRSBIO2020.scNMTseq.LIGER/issues/new/choose
 VignetteBuilder: knitr
-DockerImage: seandavi/buildabiocworkshop2020:latest
+DockerImage: joshuawd/BIRSBIO2020.scNMTseq.LIGER:latest
