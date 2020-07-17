@@ -1,6 +1,6 @@
 ---
-title: "An Example Workshop"
-author: Sean Davis^[seandavi@gmail.com]
+title: "LIGER analysis of scNMT-seq"
+author: Josh Welch^[welchjd@umich.edu]
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{An Example Workshop}
@@ -19,92 +19,111 @@ knitr::opts_chunk$set(
 # Workshop Title
 
 Authors:
-    Author Name^[Institution],
-    Another Author^[Another Institution].
+    Josh Welch^[University of Michigan].
     <br/>
-Last modified: 14 May, 2018.
-
-## Overview
+Last modified: 17 July, 2020.
 
 ### Description
 
-Along with the topic of your workshop, include how students can expect
-to spend their time. For the description may also include information
-about what type of workshop it is (e.g. instructor-led live demo, lab,
-lecture + lab, etc.). Instructors are strongly recommended to provide
-completely worked examples for lab sessions, and a set of stand-alone
-notes that can be read and understood outside of the workshop.
+LIGER analysis of scNMT-seq methylation and expression data from promoters, gene bodies, and putative enhancers
 
-### Pre-requisites
+### Promoter Methylation
+```{r, include=T}
+library(liger)
+gene_met = read.table("genebody_met.tsv.gz")
+prom_met = read.table("promoter_met_2000_2000.tsv.gz")
+rna = readRDS("SingleCellExperiment-rna_matching-cells.rds")
+metadata = read.table("sample-metadata_matching-cells.txt",header=T,sep=",")
 
-List any workshop prerequisites, for example:
+proms = reshape2::acast(prom_met,V2~V1,value.var = "V4")
+proms[is.na(proms)]=0
+met_cells = metadata$id_met[metadata$lineage10x_2 != "Visceral_endoderm"]
+rna_cells = metadata$id_rna[metadata$lineage10x_2 != "Visceral_endoderm"]
+proms = as.matrix(proms[,met_cells])
+rna = rna@assays[["counts"]][,rna_cells]
 
-* Basic knowledge of R syntax
-* Familiarity with the GenomicRanges class
-* Familiarity with xyz vignette (provide link)
+rna_liger = createLiger(list(rna=rna,met=proms))
+rna_liger = liger::normalize(rna_liger)
+rna_liger = liger::selectGenes(rna_liger,var.thresh = 1,datasets.use=1)
+rna_liger = liger::scaleNotCenter(rna_liger)
 
-List relevant background reading for the workshop, including any
-theoretical background you expect students to have.
+rna_liger@norm.data[["met"]] = rna_liger@raw.data[["met"]] = as.matrix(100-proms)
+rna_liger@var.genes = rna_liger@var.genes[rna_liger@var.genes %in% rownames(rna_liger@raw.data[["met"]])]
+rna_liger@raw.data[["met"]] = Matrix(rna_liger@raw.data[["met"]],sparse=T)
+rna_liger@norm.data[["met"]] = Matrix(rna_liger@norm.data[["met"]],sparse=T)
+rna_liger@scale.data[["met"]] = t(as.matrix(rna_liger@norm.data[["met"]][rna_liger@var.genes,]))
 
-* List any textbooks, papers, or other reading that students should be
-  familiar with. Include direct links where possible.
+rna_liger = optimizeALS(rna_liger,k=20)
+rna_liger = quantile_norm(rna_liger)
+rna_liger = runTSNE(rna_liger)
+lineage = as.character(metadata$lineage10x_2)
+stage = c(as.character(metadata$stage),as.character(metadata$stage))
+stage = as.factor(stage)
+names(stage)=c(as.character(metadata$id_rna),as.character(metadata$id_met))
+plotByDatasetAndCluster(rna_liger,clusters=stage,pt.size=1,text.size = 0)
+```
 
-### Participation
+### Gene Body Methylation
+```{r,include=T}
+genes = reshape2::acast(gene_met,V2~V1,value.var = "V4")
+genes[is.na(genes)]=0
+met_cells = metadata$id_met[metadata$lineage10x_2 != "Visceral_endoderm"]
+genes = as.matrix(genes[,met_cells])
 
-Describe how students will be expected to participate in the workshop.
+rna_liger = createLiger(list(rna=rna,met=genes))
+rna_liger = liger::normalize(rna_liger)
+rna_liger = liger::selectGenes(rna_liger,var.thresh = 1,datasets.use=1)
+rna_liger = liger::scaleNotCenter(rna_liger)
 
-### _R_ / _Bioconductor_ packages used
+rna_liger@norm.data[["met"]] = rna_liger@raw.data[["met"]] = genes
+rna_liger@var.genes = rna_liger@var.genes[rna_liger@var.genes %in% rownames(rna_liger@raw.data[["met"]])]
+rna_liger@raw.data[["met"]] = Matrix(rna_liger@raw.data[["met"]],sparse=T)
+rna_liger@norm.data[["met"]] = Matrix(rna_liger@norm.data[["met"]],sparse=T)
+rna_liger@scale.data[["met"]] = t(as.matrix(rna_liger@norm.data[["met"]][rna_liger@var.genes,]))
 
-List any _R_ / _Bioconductor_ packages that will be explicitly covered.
+rna_liger = optimizeALS(rna_liger,k=20)
+rna_liger = quantile_norm(rna_liger)
+rna_liger = runTSNE(rna_liger)
+stage = c(as.character(metadata$stage),as.character(metadata$stage))
+stage = as.factor(stage)
+names(stage)=c(as.character(metadata$id_rna),as.character(metadata$id_met))
+plotByDatasetAndCluster(rna_liger,clusters=stage,pt.size=1,text.size = 0)
+```
+## Enhancer Methylation
+```{r,include=T}
+enhancer_met = read.table("H3K27ac_distal_E7.5_union_intersect12.tsv.gz",sep="\t")
+enhancers = reshape2::acast(enhancer_met,V2~V1,value.var = "V4")
+peak2gene = read.table("genes2features_nearest.txt.gz",sep="\t",header=T)
+enhancer2gene = peak2gene$gene
+names(enhancer2gene)=peak2gene$id
+enhancer2gene = enhancer2gene[rownames(enhancers)]
+enhancers$V7 = enhancer2gene[enhancers$V2]
+my_mean = function(x){mean(x,na.rm=T)}
+enhancers = reshape2::acast(enhancer_met,V1~V7,value.var = "V4",fun.aggregate = my_mean)
+enhancers[is.na(enhancers)]=0
+enhancers = t(enhancers)
+hgnc2ens = peak2gene$id
+names(hgnc2ens) = peak2gene$gene
+hgnc2ens = hgnc2ens[rownames(enhancers)]
+rownames(enhancers)=as.character(hgnc2ens[rownames(enhancers)])
 
-### Time outline
+met_cells = metadata$id_met[metadata$lineage10x_2 != "Visceral_endoderm"]
+enhancers = as.matrix(100-enhancers[,met_cells])
 
-An example for a 45-minute workshop:
+rna_liger = createLiger(list(rna=rna,met=enhancers))
+rna_liger = liger::normalize(rna_liger)
+rna_liger@norm.data[["met"]] = rna_liger@raw.data[["met"]] = Matrix(enhancers,sparse=T)
+rna_liger@var.genes = intersect(rownames(rna_liger@raw.data[["rna"]]),rownames(rna_liger@raw.data[["met"]]))
+rna_liger = scaleNotCenter(rna_liger)
+rna_liger@scale.data[["met"]] = t(as.matrix(rna_liger@norm.data[["met"]][rna_liger@var.genes,]))
 
-| Activity                     | Time |
-|------------------------------|------|
-| Packages                     | 15m  |
-| Package Development          | 15m  |
-| Contributing to Bioconductor | 5m   |
-| Best Practices               | 10m  |
-
-### Workshop goals and objectives
-
-List "big picture" student-centered workshop goals and learning
-objectives. Learning goals and objectives are related, but not the
-same thing. These goals and objectives will help some people to decide
-whether to attend the conference for training purposes, so please make
-these as precise and accurate as possible.
-
-*Learning goals* are high-level descriptions of what
-participants will learn and be able to do after the workshop is
-over. *Learning objectives*, on the other hand, describe in very
-specific and measurable terms specific skills or knowledge
-attained. The [Bloom's Taxonomy](#bloom) may be a useful framework
-for defining and describing your goals and objectives, although there
-are others.
-
-### Learning goals
-
-Some examples:
-
-* describe how to...
-* identify methods for...
-* understand the difference between...
-
-### Learning objectives
-
-* analyze xyz data to produce...
-* create xyz plots
-* evaluate xyz data for artifacts
-
-## Workshop
-
-Divide the workshop into sections (`## A Section`). Include
-fully-evaluated _R_ code chunks. Develop exercises and solutions, and
-anticipate that your audience will walk through the code with you, or
-work on the code idependently -- do not be too ambitious in the
-material that you present.
-
+rna_liger = optimizeALS(rna_liger,k=20)
+rna_liger = quantile_norm(rna_liger)
+rna_liger = runTSNE(rna_liger)
+stage = c(as.character(metadata$stage),as.character(metadata$stage))
+stage = as.factor(stage)
+names(stage)=c(as.character(metadata$id_rna),as.character(metadata$id_met))
+plotByDatasetAndCluster(rna_liger,clusters=stage,pt.size=1,text.size = 0)
+```
 
 
