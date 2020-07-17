@@ -23,6 +23,6 @@ Suggests:
     rmarkdown,
     pkgdown
 URL: https://jw156605.github.io/BIRSBIO2020.scNMTseq.LIGER/
-BugReports: https://github.com/seandavi/BIRSBIO2020.scNMTseq.LIGER/issues/new/choose
+BugReports: https://github.com/jw156605/BIRSBIO2020.scNMTseq.LIGER/issues/new/choose
 VignetteBuilder: knitr
 DockerImage: joshuawd/BIRSBIO2020.scNMTseq.LIGER:latest
