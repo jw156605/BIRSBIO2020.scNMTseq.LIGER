@@ -48,7 +48,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          repository: jw156605/BIRSBIO2020_scNMTseq_LIGER
+          repository: jw156605/birsbio2020_scnmtseq_liger
           tag_with_ref: true
           tag_with_sha: true
           tags: latest
