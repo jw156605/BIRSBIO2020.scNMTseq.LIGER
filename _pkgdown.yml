@@ -6,13 +6,13 @@ template:
     ganalytics: UA-93043521-1
 
 home:
-  title: "BuildABiocWorkshop2020"
+  title: "BIRSBIO2020-scNMT-LIGER"
   type: inverse
 
 
 navbar:
   right:
    - icon: fa-github
-     href: https://github.com/seandavi/BuildABiocWorkshop2020
+     href: https://github.com/jw156605/BIRSBIO2020.scNMTseq.LIGER
      
 
