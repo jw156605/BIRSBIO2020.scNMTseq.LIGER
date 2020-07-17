@@ -6,7 +6,7 @@ Authors@R:
            family = "Welch",
            role = c("aut", "cre"),
            email = "welchjd@umich.edu",
-           comment = c(ORCID = "your-orc-id-here"))
+           comment = c(ORCID = "0000-0002-5869-2391"))
 Description: Analysis of scNMT-seq data using LIGER from BIRSBIO2020
 License: MIT + file LICENSE
 Encoding: UTF-8
