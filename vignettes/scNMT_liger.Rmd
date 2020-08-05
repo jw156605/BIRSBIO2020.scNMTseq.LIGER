@@ -30,8 +30,8 @@ LIGER analysis of scNMT-seq methylation and expression data from promoters, gene
 ### Promoter Methylation
 ```{r promoters}
 library(liger)
-gene_met = read.table("genebody_met.tsv.gz")
-prom_met = read.table("promoter_met_2000_2000.tsv.gz")
+gene_met = data.table::fread("https://cloudstor.aarnet.edu.au/plus/s/Xzf5vCgAEUVgbfQ/download?path=%2Fdata%2Fmet%2Fparsed&files=genebody.tsv.gz")
+prom_met = data.table::fread("https://cloudstor.aarnet.edu.au/plus/s/Xzf5vCgAEUVgbfQ/download?path=%2Fdata%2Fmet%2Fparsed&files=prom_2000_2000.tsv.gz")
 rna = readRDS("SingleCellExperiment-rna_matching-cells.rds")
 metadata = read.table("sample-metadata_matching-cells.txt",header=T,sep=",")
 
