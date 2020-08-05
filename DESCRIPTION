@@ -17,7 +17,8 @@ Depends:
     Biobase,
     reshape2,
     liger,
-    data.table
+    data.table,
+    R.utils
 Remotes:
     MacoskoLab/liger
 Suggests: 
