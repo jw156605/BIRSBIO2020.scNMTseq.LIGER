@@ -16,7 +16,8 @@ RoxygenNote: 7.1.0
 Depends: 
     Biobase,
     reshape2,
-    liger
+    liger,
+    data.table
 Remotes:
     MacoskoLab/liger
 Suggests: 
