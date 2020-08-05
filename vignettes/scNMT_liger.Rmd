@@ -32,8 +32,8 @@ LIGER analysis of scNMT-seq methylation and expression data from promoters, gene
 library(liger)
 gene_met = data.table::fread("https://cloudstor.aarnet.edu.au/plus/s/Xzf5vCgAEUVgbfQ/download?path=%2Fdata%2Fmet%2Fparsed&files=genebody.tsv.gz")
 prom_met = data.table::fread("https://cloudstor.aarnet.edu.au/plus/s/Xzf5vCgAEUVgbfQ/download?path=%2Fdata%2Fmet%2Fparsed&files=prom_2000_2000.tsv.gz")
-rna = readRDS("SingleCellExperiment-rna_matching-cells.rds")
-metadata = read.table("sample-metadata_matching-cells.txt",header=T,sep=",")
+rna = readRDS(url("https://cloudstor.aarnet.edu.au/plus/s/Xzf5vCgAEUVgbfQ/download?path=%2Fdata%2Frna%2Fparsed&files=SingleCellExperiment_matching-cells.rds"))
+metadata = read.table("https://cloudstor.aarnet.edu.au/plus/s/Xzf5vCgAEUVgbfQ/download?path=%2Foutput&files=sample-metadata_matching-cells.txt",header=T,sep=",")
 
 proms = reshape2::acast(prom_met,V2~V1,value.var = "V4")
 proms[is.na(proms)]=0
