@@ -89,41 +89,5 @@ stage = as.factor(stage)
 names(stage)=c(as.character(metadata$id_rna),as.character(metadata$id_met))
 plotByDatasetAndCluster(rna_liger,clusters=stage,pt.size=1,text.size = 0)
 ```
-## Enhancer Methylation
-```{r enhancers}
-enhancer_met = read.table("H3K27ac_distal_E7.5_union_intersect12.tsv.gz",sep="\t")
-enhancers = reshape2::acast(enhancer_met,V2~V1,value.var = "V4")
-peak2gene = read.table("genes2features_nearest.txt.gz",sep="\t",header=T)
-enhancer2gene = peak2gene$gene
-names(enhancer2gene)=peak2gene$id
-enhancer2gene = enhancer2gene[rownames(enhancers)]
-enhancers$V7 = enhancer2gene[enhancers$V2]
-my_mean = function(x){mean(x,na.rm=T)}
-enhancers = reshape2::acast(enhancer_met,V1~V7,value.var = "V4",fun.aggregate = my_mean)
-enhancers[is.na(enhancers)]=0
-enhancers = t(enhancers)
-hgnc2ens = peak2gene$id
-names(hgnc2ens) = peak2gene$gene
-hgnc2ens = hgnc2ens[rownames(enhancers)]
-rownames(enhancers)=as.character(hgnc2ens[rownames(enhancers)])
-
-met_cells = metadata$id_met[metadata$lineage10x_2 != "Visceral_endoderm"]
-enhancers = as.matrix(100-enhancers[,met_cells])
-
-rna_liger = createLiger(list(rna=rna,met=enhancers))
-rna_liger = liger::normalize(rna_liger)
-rna_liger@norm.data[["met"]] = rna_liger@raw.data[["met"]] = Matrix(enhancers,sparse=T)
-rna_liger@var.genes = intersect(rownames(rna_liger@raw.data[["rna"]]),rownames(rna_liger@raw.data[["met"]]))
-rna_liger = scaleNotCenter(rna_liger)
-rna_liger@scale.data[["met"]] = t(as.matrix(rna_liger@norm.data[["met"]][rna_liger@var.genes,]))
-
-rna_liger = optimizeALS(rna_liger,k=20)
-rna_liger = quantile_norm(rna_liger)
-rna_liger = runTSNE(rna_liger)
-stage = c(as.character(metadata$stage),as.character(metadata$stage))
-stage = as.factor(stage)
-names(stage)=c(as.character(metadata$id_rna),as.character(metadata$id_met))
-plotByDatasetAndCluster(rna_liger,clusters=stage,pt.size=1,text.size = 0)
-```
 
 
