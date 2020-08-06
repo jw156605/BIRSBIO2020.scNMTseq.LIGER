@@ -30,17 +30,21 @@ LIGER analysis of scNMT-seq methylation and expression data from promoters, gene
 ### Promoter Methylation
 ```{r promoters}
 library(liger)
-gene_met = data.table::fread("https://cloudstor.aarnet.edu.au/plus/s/Xzf5vCgAEUVgbfQ/download?path=%2Fdata%2Fmet%2Fparsed&files=genebody.tsv.gz")
-prom_met = data.table::fread("https://cloudstor.aarnet.edu.au/plus/s/Xzf5vCgAEUVgbfQ/download?path=%2Fdata%2Fmet%2Fparsed&files=prom_2000_2000.tsv.gz")
-rna = readRDS(url("https://cloudstor.aarnet.edu.au/plus/s/Xzf5vCgAEUVgbfQ/download?path=%2Fdata%2Frna%2Fparsed&files=SingleCellExperiment_matching-cells.rds"))
+library(MultiAssayExperiment)
+gastru.mae <- readRDS('C:/Users/welchjd/Desktop/NMF/scNMT/scnmtseq_gastrulation_mae.rds')
 metadata = read.table("https://cloudstor.aarnet.edu.au/plus/s/Xzf5vCgAEUVgbfQ/download?path=%2Foutput&files=sample-metadata_matching-cells.txt",header=T,sep=",")
+gastru.mae <- gastru.mae[,,grep("rna|met",names(assays(gastru.mae)))]
+gastru.mae <- gastru.mae[, !(gastru.mae$lineage %in% params$drop_lineages),]
+gastru.mae <- gastru.mae[,gastru.mae$pass_metQC==TRUE & gastru.mae$pass_rnaQC==TRUE]
 
-proms = reshape2::acast(prom_met,V2~V1,value.var = "V4")
-proms[is.na(proms)]=0
-met_cells = metadata$id_met[metadata$lineage10x_2 != "Visceral_endoderm"]
-rna_cells = metadata$id_rna[metadata$lineage10x_2 != "Visceral_endoderm"]
-proms = as.matrix(proms[,met_cells])
-rna = rna@assays[["counts"]][,rna_cells]
+proms <- experiments(gastru.mae)[["met_promoter"]]
+genes <- experiments(gastru.mae)[["met_genebody"]]
+rna <- counts(experiments(gastru.mae)[["rna"]])
+proms[is.na(proms)] = 0
+genes[is.na(genes)] = 0
+all(colnames(proms)==colnames(rna))
+colnames(proms)=paste0(colnames(proms),"_met")
+colnames(genes)=paste0(colnames(genes),"_met")
 
 rna_liger = createLiger(list(rna=rna,met=proms))
 rna_liger = liger::normalize(rna_liger)
@@ -56,20 +60,15 @@ rna_liger@scale.data[["met"]] = t(as.matrix(rna_liger@norm.data[["met"]][rna_lig
 rna_liger = optimizeALS(rna_liger,k=20)
 rna_liger = quantile_norm(rna_liger)
 rna_liger = runTSNE(rna_liger)
-lineage = as.character(metadata$lineage10x_2)
+metadata$id_met=paste0(metadata$id_met,"_met")
 stage = c(as.character(metadata$stage),as.character(metadata$stage))
 stage = as.factor(stage)
-names(stage)=c(as.character(metadata$id_rna),as.character(metadata$id_met))
+names(stage)=c(as.character(metadata$sample),as.character(metadata$id_met))
 plotByDatasetAndCluster(rna_liger,clusters=stage,pt.size=1,text.size = 0)
 ```
 
 ### Gene Body Methylation
 ```{r genebody}
-genes = reshape2::acast(gene_met,V2~V1,value.var = "V4")
-genes[is.na(genes)]=0
-met_cells = metadata$id_met[metadata$lineage10x_2 != "Visceral_endoderm"]
-genes = as.matrix(genes[,met_cells])
-
 rna_liger = createLiger(list(rna=rna,met=genes))
 rna_liger = liger::normalize(rna_liger)
 rna_liger = liger::selectGenes(rna_liger,var.thresh = 1,datasets.use=1)
@@ -84,9 +83,6 @@ rna_liger@scale.data[["met"]] = t(as.matrix(rna_liger@norm.data[["met"]][rna_lig
 rna_liger = optimizeALS(rna_liger,k=20)
 rna_liger = quantile_norm(rna_liger)
 rna_liger = runTSNE(rna_liger)
-stage = c(as.character(metadata$stage),as.character(metadata$stage))
-stage = as.factor(stage)
-names(stage)=c(as.character(metadata$id_rna),as.character(metadata$id_met))
 plotByDatasetAndCluster(rna_liger,clusters=stage,pt.size=1,text.size = 0)
 ```
 
