@@ -20,7 +20,8 @@ Depends:
     liger,
     data.table,
     R.utils,
-    SummarizedExperiment
+    MultiAssayExperiment,
+    SingleCellExperiment
 Remotes:
     MacoskoLab/liger
 Suggests: 
