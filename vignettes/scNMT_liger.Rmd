@@ -31,6 +31,7 @@ LIGER analysis of scNMT-seq methylation and expression data from promoters, gene
 ```{r promoters}
 library(liger)
 library(MultiAssayExperiment)
+library(BIRSBIO2020.scNMTseq.LIGER)
 gastru.mae <- readRDS(url('https://cloudstor.aarnet.edu.au/plus/s/Xzf5vCgAEUVgbfQ/download?path=%2Foutput&files=scnmtseq_gastrulation_mae_AllCells.rds'))
 drop_lineages = c('Primitive_endoderm','Visceral_endoderm', 'ExE_ectoderm')
 metadata = read.table("https://cloudstor.aarnet.edu.au/plus/s/Xzf5vCgAEUVgbfQ/download?path=%2Foutput&files=sample-metadata_matching-cells.txt",header=T,sep=",")
@@ -65,7 +66,19 @@ metadata$id_met=paste0(metadata$id_met,"_met")
 stage = c(as.character(metadata$stage),as.character(metadata$stage))
 stage = as.factor(stage)
 names(stage)=c(as.character(metadata$sample),as.character(metadata$id_met))
-plotByDatasetAndCluster(rna_liger,clusters=stage,pt.size=1,text.size = 0)
+liger_plots_promoter <- plotByDatasetAndCluster(rna_liger,clusters=stage,pt.size=1,text.size = 0, return.plots = TRUE)
+```
+
+```{r}
+ggsave(plot = liger_plots_promoter[[1]] + labs(col = 'Modality'), "figures/liger-promoter-modality.pdf")
+
+# Create colour palettes for stages:
+stages <- c("E4.5", "E5.5", "E6.5", "E7.5")
+# col_palette <- dput(viridisLite::viridis(n = length(stages)))
+col_palette <- c("#440154FF", "#31688EFF", "#35B779FF", "#FDE725FF")
+names(col_palette) <- stages
+    
+ggsave(plot = liger_plots_promoter[[2]] + labs(col = 'Stage') + scale_color_manual(values = col_palette), "figures/liger-promoter-stage.pdf")
 ```
 
 ### Gene Body Methylation
@@ -84,7 +97,11 @@ rna_liger@scale.data[["met"]] = t(as.matrix(rna_liger@norm.data[["met"]][rna_lig
 rna_liger = optimizeALS(rna_liger,k=20)
 rna_liger = quantile_norm(rna_liger)
 rna_liger = runTSNE(rna_liger)
-plotByDatasetAndCluster(rna_liger,clusters=stage,pt.size=1,text.size = 0)
+liger_plots_genebody <- plotByDatasetAndCluster(rna_liger,clusters=stage,pt.size=1,text.size = 0, return.plots = TRUE)
 ```
 
+```{r}
+ggsave(plot = liger_plots_genebody[[1]] + labs(col = 'Modality'), "figures/liger-genebody-modality.pdf")
 
+ggsave(plot = liger_plots_genebody[[2]] + labs(col = 'Stage') + scale_color_manual(values = col_palette), "figures/liger-genebody-stage.pdf")
+```
